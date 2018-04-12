@@ -2,7 +2,7 @@ Gitea is a community managed fork of Gogs, lightweight code hosting solution wri
 
 Project Page: [https://gitea.io](https://gitea.io)
 
-**Download latest SPK**: [here](https://github.com/jboxberger/synology-gitlab-jboxberger/releases)  
+**Download latest SPK**: [here](https://github.com/jboxberger/synology-gitea-jboxberger/releases)  
 
 ## Packages:
 - https://hub.docker.com/r/gitea/gitea/
