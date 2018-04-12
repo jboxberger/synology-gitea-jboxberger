@@ -16,7 +16,7 @@ or [here](https://www.synology.com/en-us/knowledgebase/DSM/tutorial/General/What
 
 ## Version Enumeration
 ```
-GitLab <GitLab-Version>-<Package-Version> (GitLab 10.5.5-0100)
-GitLab-Version:  as expected the GitLab version
+Gitea <Gitea-Version>-<Package-Version> (Gitea 1.4)
+Gitea-Version:  as expected the GitLab version
 Package-Version: version of the application around GitLab, install backup an other scripts
 ```
