@@ -1,0 +1,10 @@
+#!/bin/bash
+# Copyright (c) 2000-2017 Synology Inc. All rights reserved.
+
+. "$(dirname "$0")"/common
+. "$(dirname "$0")"/../WIZARD_UIFILES/ui_common
+
+BackupCustomEnvironmentVariables
+BackupContainerPorts
+
+exit 0

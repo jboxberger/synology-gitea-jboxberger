@@ -1,0 +1,34 @@
+#!/bin/sh
+# Copyright (c) 2000-2015 Synology Inc. All rights reserved.
+
+. "$(dirname $0)"/common
+UI_PATH="/usr/syno/synoman/webman/3rdparty/$PKG_NAME"
+
+case "$1" in
+	start)
+		[ -d "$TARGET_PATH"/ui ] && ln -s "$TARGET_PATH"/ui "$UI_PATH"
+		"$SYNO_WEBAPI" --exec api=SYNO.Docker.Container version=1 method=start name="$GITEA_NAME" start_dependent_container="true" && exit 0
+		exit 1
+		;;
+
+	stop)
+		rm "$UI_PATH"
+		"$SYNO_WEBAPI" --exec api=SYNO.Docker.Container version=1 method=stop name="$GITEA_NAME" || exit 1
+		exit 0
+		;;
+
+	status)
+		[ -e "$DOCKER_BIN" ] || exit 1
+		docker_version=$(synopkg version Docker | cut -d '-' -f 2)
+		if [ "$docker_version" -le 0344 ]; then
+			"$DOCKER_BIN" inspect "$GITEA_NAME" | grep -q "\"SynoStatus\": \"running\"," || exit 1
+		else
+			"$DOCKER_BIN" inspect "$GITEA_NAME" | grep -q "\"Status\": \"running\"," || exit 1
+		fi
+		exit 0
+		;;
+
+	*)
+		exit 1
+		;;
+esac

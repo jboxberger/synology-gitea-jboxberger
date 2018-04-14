@@ -1,0 +1,15 @@
+{
+    ".url": {
+        "SYNO.SDS.__PKG_NAME__": {
+            "allUsers": true,
+            "desc": "Docker Gitea",
+            "icon": "images/Gitea_{0}.png",
+            "port": "__HTTP_PORT__",
+            "protocol": "__HTTP_PROTOCOL__",
+            "texts": "texts",
+            "title": "Docker Gitea",
+            "type": "url",
+            "url": "/"
+        }
+    }
+}

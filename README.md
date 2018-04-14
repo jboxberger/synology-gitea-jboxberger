@@ -20,3 +20,9 @@ Gitea <Gitea-Version>-<Package-Version> (Gitea 1.4)
 Gitea-Version:  as expected the GitLab version
 Package-Version: version of the application around GitLab, install backup an other scripts
 ```
+
+Docs:
+https://docs.gitea.io/en-us/
+
+SSL
+https://github.com/gogits/gogs/issues/235

@@ -1,0 +1,139 @@
+#!/bin/sh
+# Copyright (c) 2000-2015 Synology Inc. All rights reserved.
+
+. "$(dirname $0)"/common
+
+UpdateConfig()
+{
+	if [ -f "$ETC_PATH"/config ]; then
+		. "$ETC_PATH"/config
+	fi
+	if [ "$SYNOPKG_PKG_STATUS" = INSTALL ]; then
+
+    if [ "$pkgwizard_container_port" = "HTTPS_SELF_SIGNED" ]; then
+      GITEA_HTTPS="true"
+      SSL_SELF_SIGNED="true"
+      HTTP_CONTAINER_PORT=443
+
+      GITEA_CERT_DIR="$SHARE_PATH/$pkgwizard_dataroot/certs"
+      if ! [ -d "$GITEA_CERT_DIR" ]; then
+        mkdir -p $GITEA_CERT_DIR
+      fi
+
+      if ! [ -f "$GITEA_CERT_DIR/gitea.key" ]; then
+        openssl genrsa -out "$GITEA_CERT_DIR/gitea.key" 2048
+      fi
+
+      if ! [ -f "$GITEA_CERT_DIR/gitea.csr" ]; then
+        openssl req -new -key "$GITEA_CERT_DIR/gitea.key" -subj "/C=DE/ST=Germany/L=Duisburg/O=jboxberger/CN=$pkgwizard_hostname" -out "$GITEA_CERT_DIR/gitea.csr"
+      fi
+
+      if ! [ -f "$GITEA_CERT_DIR/gitea.crt" ]; then
+        openssl x509 -req -days 3650 -in "$GITEA_CERT_DIR/gitea.csr" -signkey "$GITEA_CERT_DIR/gitea.key" -out "$GITEA_CERT_DIR/gitea.crt"
+      fi
+      chmod 400 "$GITEA_CERT_DIR/gitea.key"
+
+      if ! [ -f "$GITEA_CERT_DIR/dhparam.pem" ] && [ -f "/usr/syno/etc/ssl/dh2048.pem" ]; then
+        cp "/usr/syno/etc/ssl/dh2048.pem" "$GITEA_CERT_DIR/dhparam.pem"
+      fi
+
+    elif [ "$pkgwizard_container_port" = "HTTPS" ]; then
+		  GITEA_HTTPS="true"
+      SSL_SELF_SIGNED="false"
+		  HTTP_CONTAINER_PORT=443
+		else
+      GITEA_HTTPS="false"
+      SSL_SELF_SIGNED="false"
+		  HTTP_CONTAINER_PORT=80
+		fi
+
+    SHARE="$pkgwizard_dataroot"
+		HTTP_PORT="$pkgwizard_http_port"
+		SSH_PORT="$pkgwizard_ssh_port"
+		HOSTNAME="$pkgwizard_hostname"
+
+		DB_NAME="$pkgwizard_db_name"
+		DB_USER="$pkgwizard_db_user_account"
+		DB_PASS="$pkgwizard_db_user_password"
+		DB_ROOT_PASS="$pkgwizard_db_root_password"
+	fi
+
+	(
+		echo GITEA_HTTPS="\"$(echo "$GITEA_HTTPS" | quote_sh)\""
+		echo SSL_SELF_SIGNED="\"$(echo "$SSL_SELF_SIGNED" | quote_sh)\""
+		echo HTTP_CONTAINER_PORT="\"$(echo "$HTTP_CONTAINER_PORT" | quote_sh)\""
+		echo HTTP_PORT="\"$(echo "$HTTP_PORT" | quote_sh)\""
+		echo SSH_PORT="\"$(echo "$SSH_PORT" | quote_sh)\""
+		echo DB_NAME="\"$(echo "$DB_NAME" | quote_sh)\""
+		echo DB_USER="\"$(echo "$DB_USER" | quote_sh)\""
+		echo DB_PASS="\"$(echo "$DB_PASS" | quote_sh)\""
+		echo DB_ROOT_PASS="\"$(echo "$DB_ROOT_PASS" | quote_sh)\""
+		echo HOSTNAME="\"$(echo "$HOSTNAME" | quote_sh)\""
+		echo SHARE="\"$(echo "$SHARE" | quote_sh)\""
+		echo VERSION="\"$(echo "$SYNOPKG_PKGVER" | cut -d '-' -f 1 | quote_sh)\""
+	) > "$ETC_PATH"/config
+}
+
+UpdateConfig
+. "$ETC_PATH"/config
+
+GITEA_HTTP_SCHEME="http"
+if [ $GITEA_HTTPS == true ]; then
+  GITEA_HTTP_SCHEME="https"
+fi
+
+sed -i \
+  -e "s/__HTTP_PROTOCOL__/$(echo "$GITEA_HTTP_SCHEME" | quote_json | quote_sed)/g" \
+  "$TARGET_PATH"/ui/config
+
+sed -i \
+	-e "s/__HTTP_PORT__/$(echo "$HTTP_PORT" | quote_json | quote_sed)/g" \
+	"$TARGET_PATH"/ui/config \
+	"$GITEA_PROFILE"
+sed -i \
+	-e "s/__GITEA_HTTPS__/$(echo "$GITEA_HTTPS" | quote_json | quote_sed)/g" \
+	-e "s/__SSL_SELF_SIGNED__/$(echo "$SSL_SELF_SIGNED" | quote_json | quote_sed)/g" \
+	-e "s/__HTTP_CONTAINER_PORT__/$(echo "$HTTP_CONTAINER_PORT" | quote_json | quote_sed)/g" \
+	-e "s/__SSH_PORT__/$(echo "$SSH_PORT" | quote_json | quote_sed)/g" \
+	-e "s/__SHARE__/$(echo "$SHARE" | quote_json | quote_sed)/g" \
+	-e "s/__HOSTNAME__/$(echo "$HOSTNAME" | quote_sed | quote_json | quote_sed)/g" \
+	"$GITEA_PROFILE"
+sed -i \
+	-e "s/__DB_ROOT_PASSWORD__/$(echo "$DB_ROOT_PASS" | quote_sed | quote_json | quote_sed)/g" \
+	-e "s/__DB_NAME__/$(echo "$DB_NAME" | quote_sed | quote_json | quote_sed)/g" \
+	-e "s/__DB_USER__/$(echo "$DB_USER" | quote_sed | quote_json | quote_sed)/g" \
+	-e "s/__DB_PASS__/$(echo "$DB_PASS" | quote_sed | quote_json | quote_sed)/g" \
+	-e "s/__SHARE__/$(echo "$SHARE" | quote_sed | quote_json | quote_sed)/g" \
+	"$MARIADB_PROFILE"
+
+########################################################################################################################
+# RESTORE CUSTOM CONFIGURATION
+########################################################################################################################
+RestoreCustomEnvironmentVariables
+RestoreContainerPorts
+
+########################################################################################################################
+# ADD IMAGES
+########################################################################################################################
+/var/packages/Docker/target/tool/helper \
+	"$MARIADB_PACKAGE_NAME" "$MARIADB_VERSION" "$TARGET_PATH"/docker/"$MARIADB_PACKAGE_NAME_ESCAPED"-"$MARIADB_VERSION".tar.xz $MARIADB_SIZE \
+	"$GITEA_PACKAGE_NAME" "$GITEA_VERSION" "$TARGET_PATH"/docker/"$GITEA_PACKAGE_NAME_ESCAPED"-"$GITEA_VERSION".tar.xz $GITEA_SIZE \
+	|| exit 1
+
+########################################################################################################################
+# MYSQL
+########################################################################################################################
+if ! [ -d "$SHARE_PATH"/"$MARIADB_SHARE" ]; then
+  mkdir -p "$SHARE_PATH"/"$MARIADB_SHARE"
+fi
+$SYNO_WEBAPI --exec api=SYNO.Docker.Container version=1 method=delete name="$MARIADB_NAME" force=true preserve_profile=false
+$SYNO_WEBAPI --exec api=SYNO.Docker.Container version=1 method=create is_run_instantly=false profile="$(cat "$MARIADB_PROFILE")" || exit 1
+
+########################################################################################################################
+# GITEA
+########################################################################################################################
+$SYNO_WEBAPI --exec api=SYNO.Docker.Container version=1 method=delete name="$GITEA_NAME" force=true preserve_profile=false
+$SYNO_WEBAPI --exec api=SYNO.Docker.Container version=1 method=create is_run_instantly=false profile="$(cat "$GITEA_PROFILE")" || exit 1
+
+
+exit 0

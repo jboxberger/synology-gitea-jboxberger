@@ -1,0 +1,42 @@
+#!/bin/bash
+# Copyright (c) 2000-2016 Synology Inc. All rights reserved.
+
+PKG_NAME="Gitea"
+BACKUP_CONFIG="/usr/syno/etc/packages/__PKG_NAME__/config"
+
+NeedRestore()
+{
+	if [ -f "$BACKUP_CONFIG" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+GetDBName()
+{
+	get_key_value "$BACKUP_CONFIG" DB_NAME
+}
+
+GetDBUser()
+{
+	#version < "9.4.4-0050" does not store db_user in config
+	DB_USER=$(get_key_value "$BACKUP_CONFIG" DB_USER)
+	DB_USER=${DB_USER:-gitea_user}
+	echo "$DB_USER"
+}
+
+GetDBPass()
+{
+	get_key_value "$BACKUP_CONFIG" DB_PASS
+}
+
+GetShare()
+{
+	get_key_value "$BACKUP_CONFIG" SHARE
+}
+
+GetPkgVer()
+{
+	get_key_value "$BACKUP_CONFIG" PKG_VER
+}

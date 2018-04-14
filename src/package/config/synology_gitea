@@ -1,0 +1,42 @@
+{
+  "cpu_priority": 0,
+  "enable_publish_all_ports": false,
+  "env_variables": [],
+  "image": "__IMAGE__",
+  "cmd": "app:start",
+  "is_package": false,
+  "links": [
+    {
+     "alias" : "db",
+     "link_container" : "synology_gitea_db"
+    }
+  ],
+  "memory_limit": 0,
+  "name": "synology_gitea",
+  "port_bindings": [
+    {
+      "container_port": "__HTTP_CONTAINER_PORT__",
+      "host_port": "__HTTP_PORT__",
+      "type": "tcp"
+    },
+    {
+      "container_port": 22,
+      "host_port": "__SSH_PORT__",
+      "type": "tcp"
+    }
+  ],
+  "privileged": false,
+  "shortcut": {
+    "enable_shortcut": false,
+    "enable_status_page": false,
+    "enable_web_page": false,
+    "web_page_url": ""
+  },
+  "volume_bindings": [
+    {
+      "host_volume_file": "/docker/__SHARE__",
+      "mount_point": "/home/git/data",
+      "type": "rw"
+    }
+  ]
+}
