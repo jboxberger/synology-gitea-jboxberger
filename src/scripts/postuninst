@@ -5,17 +5,12 @@
 . "$ETC_PATH"/config
 
 /usr/syno/bin/synowebapi --exec api=SYNO.Docker.Container version=1 method=delete name="$GITEA_NAME" force=true preserve_profile=false
-docker rmi "$REDIS_PACKAGE_NAME":"$REDIS_VERSION"
+docker rmi "$GITEA_PACKAGE_NAME":"$GITEA_VERSION"
 
-if [ "$SYNOPKG_PKG_STATUS" != UPGRADE ] && [ "$pkgwizard_remove_mysql" = true ]; then
+if [ "$SYNOPKG_PKG_STATUS" != UPGRADE ] && [ "$pkgwizard_remove_data" = true ]; then
 	if ! rm -Rf "$SHARE_PATH/$SHARE"; then
 		logger -p 0 "$PKG_NAME: failed to remove the folder $SHARE"
 		log "$failed_remove_dir" "$SHARE"
-	fi
-
-	if ! rm -Rf "$SHARE_PATH/$MARIADB_SHARE"; then
-		logger -p 0 "$PKG_NAME: failed to remove the folder $MARIADB_SHARE"
-		log "$failed_remove_dir" "$MARIADB_SHARE"
 	fi
 
 	rm "$ETC_PATH"/config

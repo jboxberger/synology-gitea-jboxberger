@@ -1,10 +1,10 @@
 [{
-	"step_title": "Remove Gitea database",
+	"step_title": "Remove Gitea data",
 	"items": [{
 		"type": "multiselect",
-		"desc": "If the Gitea database is removed, all the data will be deleted.",
+		"desc": "If the Gitea data is removed, all the data will be deleted.",
 		"subitems": [{
-			"key": "pkgwizard_remove_mysql",
+			"key": "pkgwizard_remove_data",
 			"desc": "Remove Gitea data (git repositories and database)"
 		}]
 	}]

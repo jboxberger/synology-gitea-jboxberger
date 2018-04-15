@@ -40,28 +40,16 @@ GetPkgVer()
 {
 	get_key_value "$BACKUP_CONFIG" PKG_VER
 }
-wizard_db_settings="Set up Gitea Database"
-wizard_db_name_desc="Please enter the database name for Gitea."
-wizard_db_name_label="Database name"
-wizard_admin_acc="Account"
-wizard_admin_pass="Password"
-wizard_set_db_desc="Please create a new exclusive database account for Gitea to use existing/new data."
-wizard_set_data_title="Set up Gitea"
+
 wizard_found_backup="Please select a method to import data."
 wizard_decide_restore="Gitea database already exists.<br>Please select either of the following actions:"
 wizard_restore="Use existing data"
 wizard_create_new="Clean install (All existing data, including configuration files and the database, will be removed.)"
-wizard_db_root_password_desc="Please enter new database root password."
-wizard_db_root_password_label="Database root password"
-wizard_db_user_account_desc="Database user account"
-wizard_db_user_password_desc="Database user password"
 install_title="Install Gitea"
 install_data_root_desc="Create a shared folder to store the data of Gitea."
 install_data_root_label="Shared folder name"
 http_port_desc="Please enter the external HTTP port number for Gitea."
 http_port_label="HTTP port number"
-http_container_port_desc="Please select the internal Gitea Container Port."
-http_container_port_label="HTTP Connection"
 ssh_port_desc="Please enter the external SSH port number for Gitea."
 ssh_port_label="SSH port number"
 hostname_label="Domain name"
@@ -124,55 +112,6 @@ EOF
 }
 
 
-ApplyDBInfo()
-{
-	local page_db="$1"
-
-	sed "s/@OLD_DB@/$DB_NAME/g;s/@OLD_USER@/$DB_USER/g;s/@OLD_DATAROOT@/$OLD_DATAROOT/g" <<< "$page_db"
-}
-
-PageDB()
-{
-	local page_db=$(cat << EOF
-{
-	"step_title": "$wizard_db_settings",
-	"items": [{
-		"type": "password",
-		"desc": "$wizard_db_root_password_desc",
-		"subitems": [{
-			"key": "pkgwizard_db_root_password",
-			"desc": "$wizard_db_root_password_label",
-			"indent": 1
-		}]
-	},{
-		"type": "textfield",
-		"desc": "$wizard_set_db_desc",
-		"subitems": [{
-			"key": "pkgwizard_db_name",
-			"desc": "$wizard_db_name_label",
-			"defaultValue": "gitea"
-		}]
-	}, {
-		"type": "textfield",
-		"subitems": [{
-			"indent": 1,
-			"key": "pkgwizard_db_user_account",
-			"desc": "$wizard_db_user_account_desc",
-			"defaultValue": "gitea_user"
-		}]
-	}, {
-		"type": "password",
-		"subitems": [{
-			"indent": 1,
-			"key": "pkgwizard_db_user_password",
-			"desc": "$wizard_db_user_password_desc"
-		}]
-	}]
-}
-EOF
-)
-	ApplyDBInfo "$page_db"
-}
 PageInstallSetting()
 {
 cat << EOF
@@ -210,7 +149,7 @@ cat << EOF
 		"subitems": [{
 			"key": "pkgwizard_ssh_port",
 			"desc": "$ssh_port_label",
-			"defaultValue": "3022",
+			"defaultValue": "3001",
 			"validator": {
 				"allowBlank": false,
 				"regex": {
@@ -219,32 +158,8 @@ cat << EOF
 				"fn": "{var port=arguments[0]; if (port == 22) return 'Port 22 is a reserved port and can not be remapped by docker!';return true;}"
 			}
 		}]
-	},{
-    "type": "combobox",
-    "desc": "$http_container_port_desc",
-    "subitems": [{
-      "key": "pkgwizard_container_port",
-      "desc": "$http_container_port_label",
-      "defaultValue": "HTTP",
-      "displayField": "display_name",
-      "editable": false,
-      "store": [["HTTP","HTTP (Port 80)"],["HTTPS","HTTPS (Port 443)"],["HTTPS_SELF_SIGNED","HTTPS_SELF_SIGNED (Port 443)"]]
-    }]
-  }]
-},{
-	"step_title": "$install_title",
-	"items": [{
-		"type": "textfield",
-		"desc": "$hostname_desc",
-		"subitems": [{
-			"key": "pkgwizard_hostname",
-			"desc": "$hostname_label",
-			"defaultValue": "localhost",
-			"validator": {
-				"allowBlank": false
-			}
-		}]
 	}]
+}]
 }
 EOF
 }
@@ -258,9 +173,9 @@ main()
 	OLD_DATAROOT="$(GetShare)"
 
 	if NeedRestore; then
-		install_page="$(PageRestore),$(PageInstallSetting),$(PageDB)"
+		install_page="$(PageRestore),$(PageInstallSetting)"
 	else
-		install_page="$(PageInstallSetting),$(PageDB)"
+		install_page="$(PageInstallSetting)"
 	fi
 
 	echo "[$install_page]" > "${SYNOPKG_TEMP_LOGFILE}"

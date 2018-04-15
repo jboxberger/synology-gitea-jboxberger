@@ -15,14 +15,6 @@ GITEA_PACKAGE_NAME_ESCAPED="__GITEA_PACKAGE_NAME_ESCAPED__"
 GITEA_VERSION="__GITEA_VERSION__"
 GITEA_SIZE="__GITEA_SIZE__"
 
-MARIADB_NAME=synology_gitea_db
-MARIADB_PROFILE="$TARGET_PATH"/config/synology_gitea_db
-MARIADB_PACKAGE_NAME="__MARIADB_PACKAGE_NAME__"
-MARIADB_PACKAGE_NAME_ESCAPED="__MARIADB_PACKAGE_NAME_ESCAPED__"
-MARIADB_VERSION="__MARIADB_VERSION__"
-MARIADB_SIZE="__MARIADB_SIZE__"
-MARIADB_SHARE="__MARIADB_SHARE__"
-
 SYNO_WEBAPI=/usr/syno/bin/synowebapi
 DOCKER_BIN=/usr/local/bin/docker
 DOCKER_GITEA_CONFIG_CUSTOM="$ETC_PATH"/config_custom
@@ -58,28 +50,6 @@ quote_sh() {
 quote_json() {
 	sed -e 's|\\|\\\\|g' -e 's|\"|\\\"|g'
 }
-
-DBAdminCheck()
-{
-	local user="$1"
-	local password="$2"
-	local mysql="$3"
-
-	# Check admin's account and password
-	if ! $mysql -u "$user" --password="$password" -e "exit"; then
-		log "$wizard_admin_info_error"
-		return 1
-	fi
-
-	# Check whether the account have all privileges *.* or not
-	$mysql -u "$user" --password="$password" -e "SHOW GRANTS FOR ${user}@localhost" | grep -q "GRANT ALL PRIVILEGES ON \*\.\* TO '${user}'@'localhost'.* WITH GRANT OPTION.*"
-	if [ $? -eq 1 ]; then
-		log "$db_admin_permission_error"
-		return 1
-	fi
-	return 0
-}
-
 
 #=======================================================================================================================
 # stringInArray

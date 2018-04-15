@@ -3,19 +3,13 @@
   "enable_publish_all_ports": false,
   "env_variables": [],
   "image": "__IMAGE__",
-  "cmd": "app:start",
   "is_package": false,
-  "links": [
-    {
-     "alias" : "db",
-     "link_container" : "synology_gitea_db"
-    }
-  ],
+  "links": [],
   "memory_limit": 0,
   "name": "synology_gitea",
   "port_bindings": [
     {
-      "container_port": "__HTTP_CONTAINER_PORT__",
+      "container_port": "3000",
       "host_port": "__HTTP_PORT__",
       "type": "tcp"
     },
@@ -35,7 +29,7 @@
   "volume_bindings": [
     {
       "host_volume_file": "/docker/__SHARE__",
-      "mount_point": "/home/git/data",
+      "mount_point": "/data",
       "type": "rw"
     }
   ]

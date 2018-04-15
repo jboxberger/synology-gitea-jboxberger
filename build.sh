@@ -11,9 +11,6 @@ IS_DEBUG=0
 gitea_target_package_fqn="gitea/gitea:1.4"
 gitea_target_package_download_size=700
 
-mariadb_target_package_fqn="mariadb:10.3.5"
-mariadb_target_package_download_size=83
-
 spk_version=0100
 
 ########################################################################################################################
@@ -22,12 +19,6 @@ spk_version=0100
 for i in "$@"
 do
     case $i in
-        -pv=*|--mariadb-fqn=*)
-            mariadb_target_package_fqn="${i#*=}"
-        ;;
-        -ps=*|--mariadb-download-size=*)
-            mariadb_target_package_download_size="${i#*=}"
-        ;;
         -gv=*|--gitea-fqn=*)
             gitea_target_package_fqn="${i#*=}"
         ;;
@@ -53,10 +44,6 @@ done
 gitea_target_package_name=$(echo "$gitea_target_package_fqn" | cut -f1 -d:)
 gitea_target_package_version=$(echo "$gitea_target_package_fqn" | cut -f2 -d:)
 gitea_target_package_name_escaped=$(echo "$gitea_target_package_name" | tr '/' '-')
-
-mariadb_target_package_name=$(echo "$mariadb_target_package_fqn" | cut -f1 -d:)
-mariadb_target_package_version=$(echo "$mariadb_target_package_fqn" | cut -f2 -d:)
-mariadb_target_package_name_escaped=$(echo "$mariadb_target_package_name" | tr '/' '-')
 
 ########################################################################################################################
 # VARIABLES
@@ -107,9 +94,6 @@ synology_gitea_db_config="$project_tmp/package/config/synology_gitea_db"
 jq -c --arg image "$gitea_target_package_name:$gitea_target_package_version"  '.image=$image' <$synology_gitea_config >$synology_gitea_config".out" && mv $synology_gitea_config".out" $synology_gitea_config
 jq -c '.is_package=false' <$synology_gitea_config >$synology_gitea_config".out" && mv $synology_gitea_config".out" $synology_gitea_config
 
-jq -c --arg image "$mariadb_target_package_name:$mariadb_target_package_version"  '.image=$image' <$synology_gitea_db_config >$synology_gitea_db_config".out" && mv $synology_gitea_db_config".out" $synology_gitea_db_config
-jq -c '.is_package=false' <$synology_gitea_db_config >$synology_gitea_db_config".out" && mv $synology_gitea_db_config".out" $synology_gitea_db_config
-
 ########################################################################################################################
 # UPDATE INFO FILE
 ########################################################################################################################
@@ -122,12 +106,6 @@ sed -i -e "/^package=/s/=.*/=\"$project_name\"/" $project_tmp/INFO
 ########################################################################################################################
 sed -i -e "s|__PKG_NAME__|$project_name|g" $project_tmp/scripts/common
 sed -i -e "s|__PKG_NAME__|$project_name|g" $project_tmp/package/ui/config
-
-sed -i -e "s|__MARIADB_PACKAGE_NAME__|$mariadb_target_package_name|g" $project_tmp/scripts/common
-sed -i -e "s|__MARIADB_PACKAGE_NAME_ESCAPED__|$mariadb_target_package_name_escaped|g" $project_tmp/scripts/common
-sed -i -e "s|__MARIADB_VERSION__|$mariadb_target_package_version|g" $project_tmp/scripts/common
-sed -i -e "s|__MARIADB_SIZE__|$mariadb_target_package_download_size|g" $project_tmp/scripts/common
-sed -i -e "s|__MARIADB_SHARE__|gitea-db|g" $project_tmp/scripts/common
 
 sed -i -e "s|__GITEA_PACKAGE_NAME__|$gitea_target_package_name|g" $project_tmp/scripts/common
 sed -i -e "s|__GITEA_PACKAGE_NAME_ESCAPED__|$gitea_target_package_name_escaped|g" $project_tmp/scripts/common
@@ -145,10 +123,6 @@ mkdir -p "$project_tmp/package/docker"
 
 if [ -f "docker/$gitea_target_package_name_escaped-$gitea_target_package_version.tar.xz" ]; then
     cp -rf "docker/$gitea_target_package_name_escaped-$gitea_target_package_version.tar.xz" "$project_tmp/package/docker/$gitea_target_package_name_escaped-$gitea_target_package_version.tar.xz"
-fi
-
-if [ -f "docker/$mariadb_target_package_name_escaped-$mariadb_target_package_version.tar.xz" ]; then
-    cp -rf "docker/$mariadb_target_package_name_escaped-$mariadb_target_package_version.tar.xz" "$project_tmp/package/docker/$mariadb_target_package_name_escaped-$mariadb_target_package_version.tar.xz"
 fi
 
 ########################################################################################################################

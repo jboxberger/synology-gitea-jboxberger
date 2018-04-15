@@ -26,3 +26,20 @@ https://docs.gitea.io/en-us/
 
 SSL
 https://github.com/gogits/gogs/issues/235
+
+
+
+[server]
+PROTOCOL = https
+DOMAIN = localhost
+ROOT_URL = https://try.gogs.io/  
+CERT_FILE = path/to/cert.pem  
+KEY_FILE = path/to/key.pem  
+
+
+CREATE DATABASE `gitea` DEFAULT CHARACTER SET `utf8mb4` COLLATE `utf8mb4_general_ci`;
+CREATE USER `gitea`@'%' IDENTIFIED BY 'xxx';
+GRANT ALL PRIVILEGES ON `gitea`.* TO `gitea`@`%`;
+
+CREATE USER `gitea`@'localhost' IDENTIFIED BY 'xxx';
+GRANT ALL PRIVILEGES ON `gitea`.* TO `gitea`@`localhost`;
