@@ -1,0 +1,73 @@
+#!/bin/sh
+. "$(dirname $0)"/common
+. "$(dirname $0)"/ini_val
+. "$ETC_PATH"/config
+
+########################################################################################################################
+# VARIABLES
+########################################################################################################################
+FORCE_RENEW=0
+SYNO_CERT_DIR="/usr/syno/etc/certificate/_archive"
+GITEA_SHARE="$SHARE_PATH/$SHARE"
+GITEA_CERT_DIR="$GITEA_SHARE/certs"
+GITEA_CONFIG="$GITEA_SHARE/gitea/conf/app.ini"
+HOSTNAME=$(ini_val ${GITEA_CONFIG} server.DOMAIN)
+GITEA_CERT="gitea.crt"
+GITEA_KEY="gitea.key"
+
+########################################################################################################################
+# PARAMETER HANDLING
+########################################################################################################################
+for i in "$@"
+do
+    case $i in
+        --force-renew)
+            FORCE_RENEW=1
+        ;;
+        *)
+            # unknown option
+        ;;
+    esac
+    shift
+done
+
+
+
+if ! [ -d "$GITEA_CERT_DIR" ]; then
+  mkdir -p "$GITEA_CERT_DIR"
+fi
+
+for current_domain_cert in ${SYNO_CERT_DIR}/*; do
+  if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
+		openssl x509 -in ${current_domain_cert}/cert.pem -text | grep DNS:${HOSTNAME} > /dev/null 2>&1
+		domain_found=$?
+		if [ "${domain_found}" = "0" ]; then
+			# time of last file change, seconds since Epoch
+			last_change_cert_key=$(stat -c %Y ${current_domain_cert}/privkey.pem)
+			if [ -f ${GITEA_CERT_DIR}/${GITEA_KEY} ];then
+				last_change_gitea_cert_key=$(stat -c %Y ${GITEA_CERT_DIR}/${GITEA_KEY})
+			else
+				last_change_gitea_cert_key=0
+			fi
+			if [ ${last_change_gitea_cert_key} -le ${last_change_cert_key} ] || [ $FORCE_RENEW = 1 ]; then
+
+				echo "gitea ssl certificate is outdated... updating from domain certificate"
+				cp ${current_domain_cert}/privkey.pem ${GITEA_CERT_DIR}/${GITEA_KEY}
+				cat ${current_domain_cert}/cert.pem ${current_domain_cert}/fullchain.pem > ${GITEA_CERT_DIR}/${GITEA_CERT}
+
+				if ! [ -f "$GITEA_CERT_DIR/dhparam.pem" ] && [ -f "/usr/syno/etc/ssl/dh2048.pem" ]; then
+					cp "/usr/syno/etc/ssl/dh2048.pem" "$GITEA_CERT_DIR/dhparam.pem"
+				fi
+
+				echo "changing ownership of gitea certificates"
+				chmod 400 ${GITEA_CERT_DIR}/*
+
+				echo "restarting gitea container to activate new certificate"
+				$SYNO_WEBAPI --exec api=SYNO.Docker.Container version=1 method=stop name="$GITEA_NAME"
+				$SYNO_WEBAPI --exec api=SYNO.Docker.Container version=1 method=start name="$GITEA_NAME"
+			else
+				echo "nothing to do, gitea ssl certifiacte is same or newer than the domain ssl certificate"
+			fi
+		fi
+	fi
+done
