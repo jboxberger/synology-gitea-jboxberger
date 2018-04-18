@@ -1,8 +1,7 @@
 Gitea is a community managed fork of Gogs, lightweight code hosting solution written in Go and published under the MIT license. 
 
-Project Page: [https://gitea.io](https://gitea.io)
-Documentation: [https://docs.gitea.io/en-us/](https://docs.gitea.io/en-us/)
-
+Project Page: [https://gitea.io](https://gitea.io)  
+Documentation: [https://docs.gitea.io/en-us/](https://docs.gitea.io/en-us/)  
 **Download latest SPK**: [here](https://github.com/jboxberger/synology-gitea-jboxberger/releases)  
 
 ## Packages:
