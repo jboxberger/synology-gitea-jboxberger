@@ -55,3 +55,14 @@ By default you can use SQLite3, this is a fast and reliable one file database so
 ```
 sudo docker exec -it synology_gitea bash
 ```
+
+## Backup
+```
+backup store: /volume1/<docker-dir>/backup
+sudo sh /var/packages/synology-gitea-jboxberger/scripts/backup
+```
+
+## Restore
+```
+sudo sh /var/packages/synology-gitea-jboxberger/scripts/restore --restore-file 2018-04-19-00-45-48-gitea-1.4.tar.gz
+```

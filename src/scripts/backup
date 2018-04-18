@@ -1,0 +1,118 @@
+#!/bin/sh
+. "$(dirname $0)"/common
+. "$ETC_PATH"/config
+
+########################################################################################################################
+# DEFAULTS
+########################################################################################################################
+current_timestamp=$(date +"%Y-%m-%d-%H-%M-%S")
+
+BACKUP_TARGET_DIR="$SHARE_PATH"/backup
+GITEA_DIR="$SHARE_PATH"/"$SHARE"
+GITEA_PACKAGE_CONTROL="/var/packages/$PKG_NAME/scripts/start-stop-status"
+
+########################################################################################################################
+# Prepare
+########################################################################################################################
+if ! [ -d "$BACKUP_TARGET_DIR" ]; then
+  mkdir -p $BACKUP_TARGET_DIR
+fi
+
+########################################################################################################################
+# The command line help
+########################################################################################################################
+display_help() {
+    echo "Usage: $0 [option...]" >&2
+    echo
+    echo "   --backup-target-dir        Target directory for the compressed backup file. default: $BACKUP_TARGET_DIR"
+    echo "   --gitea-dir                Gitea installation directory. default: $GITEA_DIR"
+    echo
+    # echo some stuff here for the -a or --add-options
+    exit 1
+}
+
+########################################################################################################################
+# PARAMETER HANDLING
+########################################################################################################################
+while [ $# -ge 1 ]; do
+    case "$1" in
+        --backup-target-dir)
+            BACKUP_TARGET_DIR="$2"; shift 2
+            if ! [ -d $BACKUP_TARGET_DIR ]; then
+                mkdir -p $BACKUP_TARGET_DIR
+            fi
+        ;;
+        --gitea-dir)
+            GITEA_DIR="$2"; shift 2
+            if ! [ -d $GITEA_DIR ]; then
+                echo "--gitea-dir $GITEA_DIR not found!"
+                exit 1
+            fi
+        ;;
+        --gitea-database)
+            gitea_database="$2"; shift 2
+        ;;
+
+        -h | --help)
+            display_help  # Call your function
+            exit 0
+        ;;
+        --) # End of all options
+            shift
+            break
+        ;;
+        -*)
+            ## or call function display_help
+            exit 1
+        ;;
+        *)  # No more options
+            break
+        ;;
+    esac
+done
+
+########################################################################################################################
+# STOP SYNOLOGY PACKAGE
+########################################################################################################################
+echo "stopping gitea"
+x=$("$GITEA_PACKAGE_CONTROL" stop 2> /dev/null)
+sleep 5
+########################################################################################################################
+# BACKUP
+########################################################################################################################
+echo "backup config"
+config_file_list="synology_gitea"
+x=$(/usr/syno/bin/synowebapi --exec api=SYNO.Docker.Container.Profile version=1 method=export outfile="$BACKUP_TARGET_DIR/synology_gitea" name=synology_gitea 2> /dev/null)
+
+gitea_package_fqn=$(jq '.image' < "$BACKUP_TARGET_DIR/synology_gitea" | tr -d '"')
+gitea_package_name=$(echo $gitea_package_fqn | cut -f1 -d:)
+gitea_package_version=$(echo $gitea_package_fqn | cut -f2 -d:)
+
+if [ -f "$ETC_PATH"/config ]; then
+    cp "$ETC_PATH"/config $BACKUP_TARGET_DIR"/config"
+    config_file_list="$config_file_list config"
+fi
+
+if [ -f "$ETC_PATH"/config_container_ports ]; then
+    cp "$ETC_PATH"/config_container_ports $BACKUP_TARGET_DIR"/config_container_ports"
+    config_file_list="$config_file_list config_container_ports"
+fi
+
+if [ -f "$ETC_PATH"/config_custom ]; then
+    cp "$ETC_PATH"/config_custom $BACKUP_TARGET_DIR"/config_custom"
+    config_file_list="$config_file_list config_custom"
+fi
+
+echo "compress gitea folder"
+tar cpfz $BACKUP_TARGET_DIR"/gitea.tar.gz" --directory=$GITEA_DIR .
+
+echo "compress everything to a backup file"
+tar cfz $BACKUP_TARGET_DIR/$current_timestamp"-gitea-"$gitea_package_version".tar.gz" --remove-files --directory="$BACKUP_TARGET_DIR" gitea.tar.gz $config_file_list
+
+########################################################################################################################
+# FINISH
+########################################################################################################################
+echo "start Gitea"
+x=$($GITEA_PACKAGE_CONTROL start 2> /dev/null)
+sleep 5
+echo "backup completed!"
