@@ -1,0 +1,80 @@
+#!/bin/sh
+. "$(dirname $0)"/common
+. "$(dirname $0)"/ini_val
+. "$ETC_PATH"/config
+
+########################################################################################################################
+# VARIABLES
+########################################################################################################################
+SYNO_CERT_DIR="/usr/syno/etc/certificate/_archive"
+GITEA_SHARE="$SHARE_PATH/$SHARE"
+GITEA_CERT_DIR="$GITEA_SHARE/certs"
+GITEA_CONFIG="$GITEA_SHARE/gitea/conf/app.ini"
+HOSTNAME=$(ini_val ${GITEA_CONFIG} server.DOMAIN)
+TIMESTAMP=$(date +%s)
+GITEA_UI="$TARGET_PATH/ui/config"
+
+ACTION=""
+FORCE_RENEW=0
+
+
+if [ -z "$HOSTNAME" ]; then
+    echo "#############################################################################################################"
+    echo "gitea setup is is not completed yet, please run setup first by opening the gitea web page                    "
+    echo "http:\\<your-ds>:<port>                                                                                      "
+    echo "#############################################################################################################"
+    exit 1
+fi
+
+########################################################################################################################
+# PARAMETER HANDLING
+########################################################################################################################
+case "$1" in
+  enable|ENABLE)
+    ACTION="enable"
+      if ! [ -d "$GITEA_CERT_DIR" ]; then
+        mkdir -p "$GITEA_CERT_DIR"
+      fi
+
+      if [ -f "$GITEA_CERT_DIR/cert.pem" ]; then
+          mv "$GITEA_CERT_DIR/cert.pem" "$GITEA_CERT_DIR/cert.pem.$TIMESTAMP"
+      fi
+
+      if [ -f "$GITEA_CERT_DIR/key.pem" ]; then
+          mv "$GITEA_CERT_DIR/key.pem" "$GITEA_CERT_DIR/key.pem.$TIMESTAMP"
+      fi
+
+      $DOCKER_BIN exec -it "$GITEA_NAME" bash -c "./app/gitea/gitea cert -ca=true -duration=8760h0m0s -host=$HOSTNAME"
+      $DOCKER_BIN exec -it "$GITEA_NAME" bash -c "mv /cert.pem /data/certs/"
+      $DOCKER_BIN exec -it "$GITEA_NAME" bash -c "mv /key.pem /data/certs/"
+      $DOCKER_BIN exec -it "$GITEA_NAME" bash -c "chmod 644 /data/certs/key.pem"
+
+      ini_val ${GITEA_CONFIG} server.PROTOCOL "https"
+      ini_val ${GITEA_CONFIG} server.ROOT_URL "%(PROTOCOL)s:\/\/%(DOMAIN)s:%(HTTP_PORT)s\/"
+      ini_val ${GITEA_CONFIG} server.SSH_DOMAIN "%(DOMAIN)s"
+      ini_val ${GITEA_CONFIG} server.CERT_FILE "\/data\/certs\/cert.pem"
+      ini_val ${GITEA_CONFIG} server.KEY_FILE "\/data\/certs\/key.pem"
+
+      sed -i -e "s|\"http\"|\"https\"|g" "$TARGET_PATH/ui/config"
+    ;;
+  disable|DISABLE)
+    ACTION="disable"
+    ini_val ${GITEA_CONFIG} server.PROTOCOL "http"
+    sed -i -e "s|\"https\"|\"http\"|g" "$TARGET_PATH/ui/config"
+    ;;
+  *)
+    echo "Usage: $0 {enable|disable}" >&2
+    exit 1
+    ;;
+esac
+
+echo "restarting gitea container"
+x=$("/var/packages/$PKG_NAME/scripts/start-stop-status" stop 2> /dev/null)
+sleep 5
+x=$("/var/packages/$PKG_NAME/scripts/start-stop-status" start 2> /dev/null)
+
+echo "#############################################################################################################"
+echo "action completed, please keep in mind that you need to reload you DSM page in your browser to get the        "
+echo "correct gitea url for the gitea icon in your main menu!                                                      "
+echo "#############################################################################################################"
+exit 0

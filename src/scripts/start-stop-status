@@ -7,7 +7,7 @@ UI_PATH="/usr/syno/synoman/webman/3rdparty/$PKG_NAME"
 case "$1" in
 	start)
 		[ -d "$TARGET_PATH"/ui ] && ln -s "$TARGET_PATH"/ui "$UI_PATH"
-		"$SYNO_WEBAPI" --exec api=SYNO.Docker.Container version=1 method=start name="$GITEA_NAME" start_dependent_container="true" && exit 0
+		"$SYNO_WEBAPI" --exec api=SYNO.Docker.Container version=1 method=start name="$GITEA_NAME" && exit 0
 		exit 1
 		;;
 
