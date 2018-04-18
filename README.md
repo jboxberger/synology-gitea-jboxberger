@@ -33,7 +33,7 @@ sudo ./var/packages/synology-gitea-jboxberger/scripts/gitea-ssl disable
 ```
 
 ## Use MySQL/MariaDB instead of SQLite3
-By default you can use SQLite3, this is a fast and reliable one file database solution. If yur Gitea serves a couple of developers this should be more than sufficient but if you run your environment for more tha 10 developers then you might have better performance with MySQL/MariaDB.
+By default you can use SQLite3, this is a fast and reliable one file database solution. If your Gitea serves a couple of developers this should be more than sufficient but if you run your environment for more than 10 developers then you might have better performance with MySQL/MariaDB.
 ```
 1. Install the official MairaDB10 Package from Synology repository and set the root password.
 2. Create databse schema and user for gitea. If you're not familliar with mysql cli then you 
