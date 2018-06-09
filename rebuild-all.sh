@@ -24,6 +24,7 @@ declare -A versions;      declare -a orders;
 versions["1.3"]="34"; orders+=( "1.3" )
 versions["1.4"]="34"; orders+=( "1.4" )
 versions["1.4.1"]="34"; orders+=( "1.4.1" )
+versions["1.4.2"]="34"; orders+=( "1.4.2" )
 
 for i in "${!orders[@]}"
 do
