@@ -97,5 +97,5 @@ sudo /var/packages/synology-gitea-jboxberger/scripts/start-stop-status start
 ## SPK Changelog
 ```
 xx.x.x-0101
-- removed custom backup scripts, added backup procedure from [gitea.io](https://docs.gitea.io/en-us/backup-and-restore/).
+- removed custom backup scripts, added backup procedure from https://docs.gitea.io/en-us/backup-and-restore
 ```
