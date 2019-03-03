@@ -2,7 +2,7 @@ Gitea is a community managed fork of Gogs, lightweight code hosting solution wri
 
 Project Page: [https://gitea.io](https://gitea.io)  
 Documentation: [https://docs.gitea.io/en-us/](https://docs.gitea.io/en-us/)  
-**Download Gitea 1.7 SPK**: [here](https://github.com/jboxberger/synology-gitea-jboxberger/releases)  
+**Download Gitea 1.7.3 SPK**: [here](https://github.com/jboxberger/synology-gitea-jboxberger/releases)  
 
 ## Packages:
 - https://hub.docker.com/r/gitea/gitea/
@@ -58,11 +58,44 @@ sudo docker exec -it synology_gitea bash
 
 ## Backup
 ```
-backup store: /volume1/<docker-dir>/backup
-sudo sh /var/packages/synology-gitea-jboxberger/scripts/backup
+# create backup directory
+sudo mkdir -p /volume1/docker/gitea/backups 
+sudo chown 1000:1000 /volume1/docker/gitea/backups
+
+# create backup
+sudo /usr/local/bin/docker exec -it -u git synology_gitea bash -c "cd /data/backups && gitea dump -c /data/gitea/conf/app.ini && chmod -R 777 /data/backups/*"
 ```
 
 ## Restore
 ```
-sudo sh /var/packages/synology-gitea-jboxberger/scripts/restore --restore-file 2018-04-19-00-45-48-gitea-1.4.tar.gz
+sudo docker exec -it synology_gitea bash 
+cd /data/backups
+rm -rf gitea-dump && mkdir gitea-dump && unzip gitea-dump-1551647895.zip -d gitea-dump/ && cd gitea-dump/
+mv custom/conf/app.ini /data/gitea/conf/app.ini
+rm -rf /data/gitea/attachments && mv custom/attachments/ /data/gitea
+
+rm -rf gitea-repo && mkdir gitea-repo && unzip gitea-repo.zip -d gitea-repo/
+rm -rf /data/git/repositories && mv gitea-repo/* /data/git/
+
+# restore MYSQL
+mysql -u$USER -p$PASS $DATABASE <gitea-db.sql
+# restore SQLITE
+rm /data/gitea/gitea.db && sqlite3 /data/gitea/gitea.db <gitea-db.sql
+
+# set permissions
+chown -R git:git /data/gitea/attachments /data/git/repositories /data/gitea/conf/app.ini /data/gitea/gitea.db
+
+# cleanup
+cd .. && rm -rf gitea-dump/
+exit 
+
+# restart gitea container
+sudo /var/packages/synology-gitea-jboxberger/scripts/start-stop-status stop
+sudo /var/packages/synology-gitea-jboxberger/scripts/start-stop-status start
+```
+
+## SPK Changelog
+```
+xx.x.x-0101
+- removed custom backup scripts, added backup procedure from [gitea.io](https://docs.gitea.io/en-us/backup-and-restore/).
 ```

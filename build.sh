@@ -131,6 +131,7 @@ fi
 
 # compress package dir
 cd $project_tmp/package/ && tar -zcf ../package.tgz * && cd ../../
+rm -rf $project_tmp/package/
 
 EXTRACTSIZE=$(du -k --block-size=1KB "$project_tmp/package.tgz" | cut -f1)
 sed -i -e "/^extractsize=/s/=.*/=\"$EXTRACTSIZE\"/" $project_tmp/INFO
