@@ -31,7 +31,8 @@ declare -A versions;      declare -a orders;
 #versions["1.7"]="42"; orders+=( "1.7" )
 #versions["1.7.1"]="42"; orders+=( "1.7.1" )
 #versions["1.7.3"]="42"; orders+=( "1.7.3" )
-versions["1.8"]="47"; orders+=( "1.8" )
+#versions["1.8"]="47"; orders+=( "1.8" )
+versions["1.8.2"]="47"; orders+=( "1.8.2" )
 
 for i in "${!orders[@]}"
 do
