@@ -2,7 +2,7 @@ Gitea is a community managed fork of Gogs, lightweight code hosting solution wri
 
 Project Page: [https://gitea.io](https://gitea.io)  
 Documentation: [https://docs.gitea.io/en-us/](https://docs.gitea.io/en-us/)  
-**Download Gitea 1.8.2 SPK**: [here](https://github.com/jboxberger/synology-gitea-jboxberger/releases)  
+**Download Gitea 1.9.3 SPK**: [here](https://github.com/jboxberger/synology-gitea-jboxberger/releases)  
 
 ## Packages:
 - https://hub.docker.com/r/gitea/gitea/
@@ -70,7 +70,7 @@ sudo /usr/local/bin/docker exec -it -u git synology_gitea bash -c "cd /data/back
 ```
 sudo docker exec -it synology_gitea bash 
 cd /data/backups
-rm -rf gitea-dump && mkdir gitea-dump && unzip gitea-dump-1551647895.zip -d gitea-dump/ && cd gitea-dump/
+rm -rf gitea-dump && mkdir gitea-dump && unzip gitea-dump-1568411897.zip -d gitea-dump/ && cd gitea-dump/
 mv custom/conf/app.ini /data/gitea/conf/app.ini
 rm -rf /data/gitea/attachments && mv custom/attachments/ /data/gitea
 
