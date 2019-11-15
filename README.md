@@ -40,8 +40,8 @@ Package-Version: version of the application around GitLab, install backup an oth
 # 1) export the needed docker image version 
 bash tools/save-docker-image.sh --image="gitea/gitea:1.9.5" --target-dir=./docker
 
-# 2) Execute all steps from 'On Demand Package'. The buld script will autmatically detect the exported image in 
-#    the docker directory and include it in the .spk
+# 2) Execute all steps from 'On Demand Package'. The build script will automatically detect the exported image 
+#    in the docker directory and include it in the .spk
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
