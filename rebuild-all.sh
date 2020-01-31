@@ -34,7 +34,8 @@ declare -A versions;      declare -a orders;
 #versions["1.8"]="47"; orders+=( "1.8" )
 #versions["1.8.2"]="47"; orders+=( "1.8.2" )
 #versions["1.9"]="47"; orders+=( "1.9" )
-versions["1.9.3"]="45"; orders+=( "1.9.3" )
+#versions["1.9.3"]="45"; orders+=( "1.9.3" )
+versions["1.10.3"]="49"; orders+=( "1.10.3" )
 
 for i in "${!orders[@]}"
 do
@@ -43,7 +44,7 @@ do
     gitea_package_fqn=$gitea_package_name:$gitea_version
 
 
-    echo "building $gitea_package_fqn ("$gitea_size"MB) with $postgresql_package_fqn ("$postgresql_size"MB)"
+    echo "building $gitea_package_fqn ("$gitea_size"MB)"
     ./build.sh --gitea-fqn=$gitea_package_fqn --gitea-download-size=$gitea_size \
        --spk-version=$spk_version \
        "$IS_DEBUG"
