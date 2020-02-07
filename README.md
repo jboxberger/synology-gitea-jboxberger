@@ -48,6 +48,7 @@ bash tools/save-docker-image.sh --image="gitea/gitea:1.9.5" --target-dir=./docke
 # On Demand Package (docker image will be pulled during spk installation)
 ----------------------------------------------------------------------------------------------------------------
 # 1) add an new line (or modify existing) in the rebuild-all.sh with the desired version
+# the value of '45' is just the expected container size in MB for Synology installer progressbar.
 versions["1.9.5"]="45"; orders+=( "1.9.5" )
 
 # 2) execute the rebuild-all.sh script (required packages will be installed automatically)
