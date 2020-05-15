@@ -107,19 +107,19 @@ sudo /usr/local/bin/docker exec -it -u git synology_gitea bash -c "cd /data/back
 sudo docker exec -it synology_gitea bash
 cd /data/backups
 rm -rf gitea-dump && mkdir gitea-dump && unzip gitea-dump-1568411897.zip -d gitea-dump/ && cd gitea-dump/
-mv custom/conf/app.ini /data/gitea/conf/app.ini
-rm -rf /data/gitea/attachments && mv custom/attachments/ /data/gitea
+rm -rf /data/gitea/* && mv data/* /data/gitea
 
 rm -rf gitea-repo && mkdir gitea-repo && unzip gitea-repo.zip -d gitea-repo/
 rm -rf /data/git/repositories && mv gitea-repo/* /data/git/
 
-# restore MYSQL
+# restore MYSQL (not required if use Sqlite3)
 mysql -u$USER -p$PASS $DATABASE <gitea-db.sql
-# restore SQLITE
+
+# if needed restore from .sql file (Sqlite3)
 rm /data/gitea/gitea.db && sqlite3 /data/gitea/gitea.db <gitea-db.sql
 
 # set permissions
-chown -R git:git /data/gitea/attachments /data/git/repositories /data/gitea/conf/app.ini /data/gitea/gitea.db
+chown -R git:git /data/gitea /data/git/repositories
 
 # cleanup
 cd .. && rm -rf gitea-dump/
